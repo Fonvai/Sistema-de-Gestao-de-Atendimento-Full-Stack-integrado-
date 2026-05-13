@@ -26,10 +26,12 @@ import * as Location  from 'expo-location';
 import { NavigationContainer }       from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-// ⚠️ TROQUE pelo IP da sua máquina quando rodar o Expo no celular físico
-// Se usar emulador Android: http://10.0.2.2:3001
-// Se usar emulador iOS / Expo Go no celular: http://SEU_IP_LOCAL:3001
-const API_URL = 'http://192.168.1.100:3001';
+// ⚠️ Ajuste este IP para o seu computador quando usar um dispositivo físico.
+// Para emulador Android use 10.0.2.2, para iOS simulator use localhost.
+const LOCAL_API_HOST = '192.168.1.100';
+const API_URL = Platform.OS === 'android'
+  ? 'http://10.0.2.2:3001'
+  : `http://${LOCAL_API_HOST}:3001`;
 
 const Stack = createNativeStackNavigator();
 
@@ -124,9 +126,8 @@ function AbrirChamadoScreen({ navigation }) {
       }
 
       const resposta = await fetch(`${API_URL}/tickets`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'multipart/form-data' },
-        body:    formData
+        method: 'POST',
+        body:   formData
       });
 
       if (!resposta.ok) throw new Error('Erro ao enviar chamado');
