@@ -50,6 +50,7 @@ function AbrirChamadoScreen({ navigation }) {
 
   // --- Função: Tirar foto ---
   const tirarFoto = async () => {
+    // Pede permissão para usar a câmera
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permissão negada', 'Precisamos acessar sua câmera para tirar fotos.');
@@ -59,7 +60,7 @@ function AbrirChamadoScreen({ navigation }) {
     const resultado = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 0.7,
+      quality: 0.7,             // 70% de qualidade para não pesar demais
     });
 
     if (!resultado.canceled) {
@@ -94,6 +95,7 @@ function AbrirChamadoScreen({ navigation }) {
 
   // --- Função: Enviar chamado para o backend ---
   const enviarChamado = async () => {
+    // Validação simples
     if (!titulo.trim() || !descricao.trim() || !usuario.trim()) {
       Alert.alert('Campos obrigatórios', 'Preencha: título, descrição e seu nome.');
       return;
@@ -102,6 +104,7 @@ function AbrirChamadoScreen({ navigation }) {
     setCarregando(true);
 
     try {
+      // FormData permite enviar texto + arquivo (foto) juntos
       const formData = new FormData();
       formData.append('titulo',   titulo);
       formData.append('descricao', descricao);
@@ -113,6 +116,7 @@ function AbrirChamadoScreen({ navigation }) {
       }
 
       if (foto) {
+        // Determina a extensão da foto
         const extensao = foto.split('.').pop();
         formData.append('foto', {
           uri:  foto,
@@ -136,6 +140,7 @@ function AbrirChamadoScreen({ navigation }) {
         [{ text: 'OK', onPress: () => navigation.navigate('MeusChamados') }]
       );
 
+      // Limpa o formulário
       setTitulo(''); setDescricao(''); setUsuario('');
       setFoto(null); setLocalizacao(null);
 
@@ -153,6 +158,7 @@ function AbrirChamadoScreen({ navigation }) {
         <Text style={estilos.subtitulo}>Descreva seu problema para nossa equipe</Text>
       </View>
 
+      {/* Campo: Nome do usuário */}
       <Text style={estilos.label}>Seu nome *</Text>
       <TextInput
         style={estilos.input}
@@ -161,6 +167,7 @@ function AbrirChamadoScreen({ navigation }) {
         onChangeText={setUsuario}
       />
 
+      {/* Campo: Título */}
       <Text style={estilos.label}>Título do problema *</Text>
       <TextInput
         style={estilos.input}
@@ -169,6 +176,7 @@ function AbrirChamadoScreen({ navigation }) {
         onChangeText={setTitulo}
       />
 
+      {/* Campo: Descrição */}
       <Text style={estilos.label}>Descrição detalhada *</Text>
       <TextInput
         style={[estilos.input, estilos.inputMultiline]}
@@ -180,6 +188,7 @@ function AbrirChamadoScreen({ navigation }) {
         textAlignVertical="top"
       />
 
+      {/* Botão: Tirar foto */}
       <TouchableOpacity style={estilos.botaoSecundario} onPress={tirarFoto}>
         <Text style={estilos.textoBotaoSecundario}>
           {foto ? '📷 Trocar foto' : '📷 Tirar foto do problema'}
@@ -189,6 +198,7 @@ function AbrirChamadoScreen({ navigation }) {
         <Image source={{ uri: foto }} style={estilos.preview} resizeMode="cover" />
       )}
 
+      {/* Botão: Pegar localização */}
       <TouchableOpacity
         style={estilos.botaoSecundario}
         onPress={pegarLocalizacao}
@@ -205,6 +215,7 @@ function AbrirChamadoScreen({ navigation }) {
         )}
       </TouchableOpacity>
 
+      {/* Botão: Enviar */}
       <TouchableOpacity
         style={[estilos.botaoPrincipal, carregando && estilos.botaoDesabilitado]}
         onPress={enviarChamado}
@@ -217,6 +228,7 @@ function AbrirChamadoScreen({ navigation }) {
         )}
       </TouchableOpacity>
 
+      {/* Link para ver chamados */}
       <TouchableOpacity onPress={() => navigation.navigate('MeusChamados')}>
         <Text style={estilos.link}>Ver meus chamados</Text>
       </TouchableOpacity>
@@ -231,6 +243,7 @@ function MeusChamadosScreen() {
   const [tickets, setTickets]     = useState([]);
   const [carregando, setCarregando] = useState(true);
 
+  // Carrega os tickets ao abrir a tela
   useEffect(() => {
     buscarTickets();
   }, []);
@@ -239,7 +252,7 @@ function MeusChamadosScreen() {
     try {
       const resposta = await fetch(`${API_URL}/tickets`);
       const dados    = await resposta.json();
-      setTickets(dados.reverse());
+      setTickets(dados.reverse()); // mais recentes primeiro
     } catch (erro) {
       Alert.alert('Erro', 'Não foi possível carregar os chamados.');
     } finally {
@@ -247,6 +260,7 @@ function MeusChamadosScreen() {
     }
   };
 
+  // Cor do badge de status
   const corStatus = {
     aberto:        '#E74C3C',
     em_andamento:  '#F39C12',
@@ -288,12 +302,15 @@ function MeusChamadosScreen() {
               <Text style={estilos.cardMeta}>👤 {ticket.usuario}</Text>
             </View>
           </View>
-        )))
-      }
+        ))
+      )}
     </ScrollView>
   );
 }
 
+// ============================================================
+//  COMPONENTE RAIZ — Navegação entre telas
+// ============================================================
 export default function App() {
   return (
     <NavigationContainer>
@@ -320,6 +337,9 @@ export default function App() {
   );
 }
 
+// ============================================================
+//  ESTILOS
+// ============================================================
 const estilos = StyleSheet.create({
   container: {
     flex: 1,
